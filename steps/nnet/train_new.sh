@@ -94,7 +94,11 @@ data=$1
 data_cv=$2
 labels=$3
 dir=$4
+
+
+
 #silphonelist=`cat $lang/phones/silence.csl` || exit 1;
+
 
 #for f in $alidir/final.mdl $alidir/ali.1.gz $alidir_cv/ali.1.gz $data/feats.scp $data_cv/feats.scp; do
 #  [ ! -f $f ] && echo "$0: no such file $f" && exit 1;
@@ -115,7 +119,7 @@ mkdir -p $dir/{log,nnet}
 ###### PREPARE ALIGNMENTS ######
 echo
 echo "# PREPARING ALIGNMENTS"
-if [ ! -z "$labels" ]; then
+if [ ! -z "$labels" ]; then  # $labels get value frome $3 in line 95, so it's not empty
   echo "Using targets '$labels' (by force)"
   labels_tr="$labels"
   labels_cv="$labels"
@@ -124,8 +128,7 @@ else
   # define pdf-alignment rspecifiers
   labels_tr="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- | ali-to-post ark:- ark:- |"
   labels_cv="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir_cv/ali.*.gz |\" ark:- | ali-to-post ark:- ark:- |"
-  #
-  write_label="$labels_tr ark,t:$data/1.ark" 
+  # write_label="$labels_tr ark,t:$data/1.ark" 
   labels_tr_pdf="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- |" # for analyze-counts.
   labels_tr_phn="ark:ali-to-phones --per-frame=true $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- |"
 
