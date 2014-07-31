@@ -41,7 +41,7 @@ lda_dim=300        # LDA dimension (applies to `lda` feat_type)
 
 # LABELS
 labels=            # use these labels to train (override deafault pdf alignments) 
-num_tgt=100           # force to use number of outputs in the MLP (default is autodetect)
+num_tgt=           # force to use number of outputs in the MLP (default is autodetect)
 
 # TRAINING SCHEDULER
 learn_rate=0.008   # initial learning rate
@@ -62,7 +62,7 @@ echo "$0 $@"  # Print the command line for logging
 . parse_options.sh || exit 1;
 
 
-if [ $# != 4 ]; then
+if [ $# != 6 ]; then
    echo "Usage: $0 <data-train> <data-dev> <lang-dir> <ali-train> <ali-dev> <exp-dir>"
    echo " e.g.: $0 data/train data/cv data/lang exp/mono_ali_train exp/mono_ali_cv exp/mono_nnet"
    echo ""
@@ -92,24 +92,24 @@ fi
 
 data=$1
 data_cv=$2
-labels=$3
-dir=$4
+lang=$3
+alidir=$4
+alidir_cv=$5
+dir=$6
+
+silphonelist=`cat $lang/phones/silence.csl` || exit 1;
 
 
-
-#silphonelist=`cat $lang/phones/silence.csl` || exit 1;
-
-
-#for f in $alidir/final.mdl $alidir/ali.1.gz $alidir_cv/ali.1.gz $data/feats.scp $data_cv/feats.scp; do
-#  [ ! -f $f ] && echo "$0: no such file $f" && exit 1;
-#done
+for f in $alidir/final.mdl $alidir/ali.1.gz $alidir_cv/ali.1.gz $data/feats.scp $data_cv/feats.scp; do
+  [ ! -f $f ] && echo "$0: no such file $f" && exit 1;
+done
 
 echo
 echo "# INFO"
 echo "$0 : Training Neural Network"
 printf "\t dir       : $dir \n"
-#printf "\t Train-set : $data $alidir \n"
-#printf "\t CV-set    : $data_cv $alidir_cv \n"
+printf "\t Train-set : $data $alidir \n"
+printf "\t CV-set    : $data_cv $alidir_cv \n"
 
 mkdir -p $dir/{log,nnet}
 
@@ -119,7 +119,7 @@ mkdir -p $dir/{log,nnet}
 ###### PREPARE ALIGNMENTS ######
 echo
 echo "# PREPARING ALIGNMENTS"
-if [ ! -z "$labels" ]; then  # $labels get value frome $3 in line 95, so it's not empty
+if [ ! -z "$labels" ]; then
   echo "Using targets '$labels' (by force)"
   labels_tr="$labels"
   labels_cv="$labels"
@@ -128,7 +128,7 @@ else
   # define pdf-alignment rspecifiers
   labels_tr="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- | ali-to-post ark:- ark:- |"
   labels_cv="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir_cv/ali.*.gz |\" ark:- | ali-to-post ark:- ark:- |"
-  # write_label="$labels_tr ark,t:$data/1.ark" 
+  # 
   labels_tr_pdf="ark:ali-to-pdf $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- |" # for analyze-counts.
   labels_tr_phn="ark:ali-to-phones --per-frame=true $alidir/final.mdl \"ark:gunzip -c $alidir/ali.*.gz |\" ark:- |"
 
@@ -171,7 +171,7 @@ head -n 10000 $dir/train.scp > $dir/train.scp.10k
 # read the features
 feats_tr="ark:copy-feats scp:$dir/train.scp ark:- |"
 feats_cv="ark:copy-feats scp:$dir/cv.scp ark:- |"
-input_label="ark:ali-to-post ark:$labels ark:- |"
+
 # CMVN:
 # optionally import CMVN config from pre-training
 if [ ! -z $feature_transform ]; then
@@ -362,7 +362,7 @@ steps/nnet/train_scheduler.sh \
   ${train_tool:+ --train-tool "$train_tool"} \
   ${frame_weights:+ --frame-weights "$frame_weights"} \
   ${config:+ --config $config} \
-  $mlp_init "$feats_tr" "$feats_cv" "$input_label" "$input_label" $dir || exit 1
+  $mlp_init "$feats_tr" "$feats_cv" "$labels_tr" "$labels_cv" $dir || exit 1
 
 if $prepend_cnn; then
   echo "Preparing feature transform with CNN layers for RBM pre-training."

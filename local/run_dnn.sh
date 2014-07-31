@@ -54,7 +54,7 @@ if [ $stage -le 2 ]; then
   (tail --pid=$$ -F $dir/log/train_nnet.log 2>/dev/null)& # forward log
   # Train
   $cuda_cmd $dir/log/train_nnet.log \
-    steps/nnet/train_new.sh --feature-transform $feature_transform --dbn $dbn --hid-layers 0 --learn-rate 0.008 \
+    steps/nnet/train.sh --feature-transform $feature_transform --dbn $dbn --hid-layers 0 --learn-rate 0.008 \
     $data_feats/train_tr90 $data_feats/train_cv10 $labels $dir || exit 1;
 fi
 

@@ -10,7 +10,7 @@ if [ ! $# -eq 1 ]; then
 	exit 1
 fi
 
-prefix=$1
+prefix=results/$1
 feats=$2
 
 mkdir -p $prefix
