@@ -2,8 +2,8 @@
 feats=$1
 
 if [ ! -e $1 ]; then
-	echo "feats.scp doesn't exist!"
-	exit 1
+  echo "feats.scp doesn't exist!"
+  exit 1
 fi
 
 echo "Getting files' path ..." 
@@ -14,5 +14,5 @@ rm tmp.file
 echo "Got it!"
 
 cat feats.file | while read line; do
-	copy-feats ark:$line ark,t:-
+  copy-feats ark:$line ark,t:-
 done >> allfeats.txt

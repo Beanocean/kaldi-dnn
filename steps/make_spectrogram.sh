@@ -8,7 +8,7 @@
 # Begin configuration section.
 nj=4
 cmd=run.pl
-spectralband_config=conf/spectralband.conf
+spectrogram_config=conf/spectrogram.conf
 compress=true
 # End configuration section.
 
@@ -18,9 +18,9 @@ if [ -f path.sh ]; then . ./path.sh; fi
 . parse_options.sh || exit 1;
 
 if [ $# != 3 ]; then
-   echo "usage: make_spectralband.sh [options] <data-dir> <log-dir> <path-to-spectralbanddir>";
+   echo "usage: make_spectrogram.sh [options] <data-dir> <log-dir> <path-to-spectrogramdir>";
    echo "options: "
-   echo "  --spectralband-config <config-file>                      # config passed to compute-spectralband-feats "
+   echo "  --spectrogram-config <config-file>                      # config passed to compute-spectrogram-feats "
    echo "  --nj <nj>                                        # number of parallel jobs"
    echo "  --cmd (utils/run.pl|utils/queue.pl <queue opts>) # how to run jobs."
    exit 1;
@@ -28,16 +28,16 @@ fi
 
 data=$1
 logdir=$2
-spectralbanddir=$3
+spectrogramdir=$3
 
 
-# make $spectralbanddir an absolute pathname.
-spectralbanddir=`perl -e '($dir,$pwd)= @ARGV; if($dir!~m:^/:) { $dir = "$pwd/$dir"; } print $dir; ' $spectralbanddir ${PWD}`
+# make $spectrogramdir an absolute pathname.
+spectrogramdir=`perl -e '($dir,$pwd)= @ARGV; if($dir!~m:^/:) { $dir = "$pwd/$dir"; } print $dir; ' $spectrogramdir ${PWD}`
 
 # use "name" as part of name of the archive.
 name=`basename $data`
 
-mkdir -p $spectralbanddir || exit 1;
+mkdir -p $spectrogramdir || exit 1;
 mkdir -p $logdir || exit 1;
 
 if [ -f $data/feats.scp ]; then
@@ -48,11 +48,11 @@ fi
 
 scp=$data/wav.scp
 
-required="$scp $spectralband_config"
+required="$scp $spectrogram_config"
 
 for f in $required; do
   if [ ! -f $f ]; then
-    echo "make_spectralband.sh: no such file $f"
+    echo "make_spectrogram.sh: no such file $f"
     exit 1;
   fi
 done
@@ -78,11 +78,11 @@ if [ -f $data/segments ]; then
   utils/split_scp.pl $data/segments $split_segments || exit 1;
   rm $logdir/.error 2>/dev/null
 
-  $cmd JOB=1:$nj $logdir/make_spectralband_${name}.JOB.log \
+  $cmd JOB=1:$nj $logdir/make_spectrogram_${name}.JOB.log \
     extract-segments scp,p:$scp $logdir/segments.JOB ark:- \| \
-    compute-spectralband-feats $vtln_opts --verbose=2 --config=$spectralband_config ark:- ark:- \| \
+    compute-spectrogram-feats $vtln_opts --verbose=2 --config=$spectrogram_config ark:- ark:- \| \
     copy-feats --compress=$compress ark:- \
-      ark,scp:$spectralbanddir/raw_spectralband_$name.JOB.ark,$spectralbanddir/raw_spectralband_$name.JOB.scp \
+      ark,scp:$spectrogramdir/raw_spectrogram_$name.JOB.ark,$spectrogramdir/raw_spectrogram_$name.JOB.scp \
      || exit 1;
 
 else
@@ -100,24 +100,24 @@ else
 
   echo "cmd: "$cmd
   echo "logdir: "$logdir
-  $cmd JOB=1:$nj $logdir/make_spectralband_${name}.JOB.log \
-    compute-spectralband-feats  $vtln_opts --frame-length=46 --frame-shift=23 --verbose=2 --config=$spectralband_config \
+  $cmd JOB=1:$nj $logdir/make_spectrogram_${name}.JOB.log \
+    compute-spectrogram-feats  $vtln_opts --frame-length=46 --frame-shift=23 --verbose=2 --config=$spectrogram_config \
      scp,p:$logdir/wav_${name}.JOB.scp ark:- \| \
       copy-feats --compress=$compress ark:- \
-      ark,scp:$spectralbanddir/raw_spectralband_$name.JOB.ark,$spectralbanddir/raw_spectralband_$name.JOB.scp \
+      ark,scp:$spectrogramdir/raw_spectrogram_$name.JOB.ark,$spectrogramdir/raw_spectrogram_$name.JOB.scp \
       || exit 1;
 fi
 
 
 if [ -f $logdir/.error.$name ]; then
-  echo "Error producing spectralband features for $name:"
-  tail $logdir/make_spectralband_${name}.1.log
+  echo "Error producing spectrogram features for $name:"
+  tail $logdir/make_spectrogram_${name}.1.log
   exit 1;
 fi
 
 # concatenate the .scp files together.
 for ((n=1; n<=nj; n++)); do
-  cat $spectralbanddir/raw_spectralband_$name.$n.scp || exit 1;
+  cat $spectrogramdir/raw_spectrogram_$name.$n.scp || exit 1;
 done > $data/feats.scp
 
 rm $logdir/wav_${name}.*.scp  $logdir/segments.* 2>/dev/null
@@ -134,4 +134,4 @@ if [ $nf -lt $[$nu - ($nu/20)] ]; then
   exit 1;
 fi
 
-echo "Succeeded creating spectralband features for $name"
+echo "Succeeded creating spectrogram features for $name"
