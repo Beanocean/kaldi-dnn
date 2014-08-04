@@ -28,6 +28,7 @@ if [ "$feats" != "mfcc" ] && [ "$feats" != "spectralband" ] \
 fi
 
 mkdir -p $prefix
+rm -r $prefix/*
 cp -r data $prefix/data
 
 for x in train test; do 
