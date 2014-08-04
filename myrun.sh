@@ -27,8 +27,8 @@ if [ "$feats" != "mfcc" ] && [ "$feats" != "spectralband" ] \
   echo "feats-type must be one of: mfcc, spectralband, spectrogram" && exit 1
 fi
 
+[ -e $prefix ] && echo "remove old data in $prefix" && rm -r $prefix
 mkdir -p $prefix
-rm -r $prefix/*
 cp -r data $prefix/data
 
 for x in train test; do 
@@ -36,4 +36,4 @@ for x in train test; do
     $prefix/exp/$feats/$x $prefix/$feats
 done
 
-# local/run_dnn.sh $prefix
+local/run_dnn.sh $prefix
