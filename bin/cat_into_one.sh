@@ -1,18 +1,24 @@
 #!/bin/bash
-feats=$1
+featscp=$1
+allfeats=$2
 
-if [ ! -e $1 ]; then
+if [ ! -e $featscp ]; then
   echo "feats.scp doesn't exist!"
   exit 1
 fi
 
-echo "Getting files' path ..." 
-cut -d ' ' -f 2 $1 | cut -d : -f 1 | sort -u > tmp.file
-tail -n 9 tmp.file > feats.file
-head -n 1 tmp.file >> feats.file
+echo "Getting featrue's path ..." 
+cut -d ' ' -f 2 $featscp | cut -d : -f 1 | sort -u > tmp.file
+echo "tmp.file is:" && cat tmp.file
+# LC_ALL=C
+head -n 1 tmp.file > feats.file
+tail -n 8 tmp.file >> feats.file
+head -n 2 tmp.file | tail -n 1 >> feats.file
 rm tmp.file
-echo "Got it!"
+echo "feats.file is:" && cat feats.file
 
 cat feats.file | while read line; do
   copy-feats ark:$line ark,t:-
-done >> allfeats.txt
+done >> $allfeats
+
+rm feats.file

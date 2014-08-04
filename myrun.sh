@@ -10,6 +10,7 @@
 . ./cmd.sh
 [ -f path.sh ] && . ./path.sh
 set -e
+stage=0
 
 # how to use this shell scripts
 if [ ! $# -eq  2 ]; then
@@ -27,13 +28,29 @@ if [ "$feats" != "mfcc" ] && [ "$feats" != "spectralband" ] \
   echo "feats-type must be one of: mfcc, spectralband, spectrogram" && exit 1
 fi
 
-[ -e $prefix ] && echo "remove old data in $prefix" && rm -r $prefix
-mkdir -p $prefix
-cp -r data $prefix/data
+stage=1
+# extract feature
+if [ $stage -le 0 ]; then
+  # make directories of current experiments
+  [ -e $prefix ] && echo "remove old data in $prefix" && rm -r $prefix
+  mkdir -p $prefix
+  cp -r data $prefix/data
 
-for x in train test; do 
-  steps/make_${feats}.sh --cmd "$train_cmd" --nj 10 $prefix/data/$x \
-    $prefix/exp/$feats/$x $prefix/$feats
-done
+  for x in train test; do 
+    steps/make_${feats}.sh --cmd "$train_cmd" --nj 10 $prefix/data/$x \
+      $prefix/exp/$feats/$x $prefix/$feats
+  done
+fi
 
-local/run_dnn.sh $prefix
+if [ $stage -le 1 ]; then
+  # reshape all feature and make label
+  dir=$prefix/data/train
+  # bin/cat_into_one.sh $dir/feats.scp $dir/allfeat.txt
+  python bin/make_new_feats.py $dir/allfeat.txt $dir/newfeats.txt
+fi
+
+stage=3
+if [ $stage -le 2 ]; then
+  # train dnn
+  local/run_dnn.sh $prefix
+fi
