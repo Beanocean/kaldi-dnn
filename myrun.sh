@@ -19,7 +19,7 @@ if [ ! $# -eq  2 ]; then
   exit 1
 fi
 
-prefix=results/$1
+prefix=../results/$1
 
 # check feats type
 feats=$2
@@ -28,7 +28,6 @@ if [ "$feats" != "mfcc" ] && [ "$feats" != "spectralband" ] \
   echo "feats-type must be one of: mfcc, spectralband, spectrogram" && exit 1
 fi
 
-stage=1
 # extract feature
 if [ $stage -le 0 ]; then
   # make directories of current experiments
@@ -42,6 +41,7 @@ if [ $stage -le 0 ]; then
   done
 fi
 
+stage=2
 if [ $stage -le 1 ]; then
   # reshape all feature and make label
   dir=$prefix/data/train

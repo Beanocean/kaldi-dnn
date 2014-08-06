@@ -108,8 +108,8 @@ echo
 echo "# INFO"
 echo "$0 : Training Neural Network"
 printf "\t dir       : $dir \n"
-#printf "\t Train-set : $data $alidir \n"
-#printf "\t CV-set    : $data_cv $alidir_cv \n"
+printf "\t Train-set : $data \n"  # $alidir \n"
+printf "\t CV-set    : $data_cv \n"  # $alidir_cv \n"
 
 mkdir -p $dir/{log,nnet}
 
