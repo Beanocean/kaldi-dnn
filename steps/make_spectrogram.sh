@@ -56,7 +56,7 @@ for f in $required; do
     exit 1;
   fi
 done
-utils/validate_data_dir.sh --no-text --no-feats $data || exit 1;
+# utils/validate_data_dir.sh --no-text --no-feats $data || exit 1;
 
 # note: in general, the double-parenthesis construct in bash "((" is "C-style
 # syntax" where we can get rid of the $ for variable names, and omit spaces.
