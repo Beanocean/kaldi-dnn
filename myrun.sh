@@ -93,7 +93,7 @@ fi
 if [ $stage -le 3 ]; then
   dir=$prefix/learned_feature
   mkdir $dir
-  bin/test_dnn.sh $dir
+  bin/make_learned_feats.sh $dir
 fi
 
 echo "finshed successfully!"
