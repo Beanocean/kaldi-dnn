@@ -67,18 +67,21 @@ if [ $stage -le 1 ]; then
   $cmd JOB=1:$nj $logdir/reshape_feature_train.JOB.log \
     bin/reshape_feats.sh $dir/raw_${feats}_train.JOB.ark \
     $dir/new_${feats}_train.JOB.ark utt-JOB
-
+  # make label
   $cmd JOB=1:$nj $logdir/make_label_train.JOB.log \
     bin/make_utt_labels.py $dir/raw_${feats}_train.JOB.scp \
     $dir/new_${feats}_train.JOB.scp $dir/new_${feats}_train.JOB.labels
-
+  # make label.pdf and new feats.scp
   mv $prefix/data/train/feats.scp $prefix/data/train/feats.scp.old
   rm $prefix/data/train/labes.pdf -f
   for i in $(seq $nj); do
     cat $dir/new_${feats}_train.${x}.scp >> $prefix/data/train/feats.scp
-    cat $dir/new_${feats}_train.${x}.labels >> $prefix/data/train/labels.pdf
+    cat $dir/new_${feats}_train.${x}.labels >> $prefix/data/train/label.pdf
   done
+  # make new utt2spk spk2utt
+  bin/make_new_utt_spk.sh $prefix/data/train/feats.scp
 fi
+
 stage=4
 # Train dnn
 if [ $stage -le 2 ]; then
