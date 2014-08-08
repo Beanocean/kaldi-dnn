@@ -9,6 +9,7 @@
 *.pyc
 *.exe
 *.swp
+*.tmp
 
 # directories
 *data/
