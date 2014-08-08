@@ -21,5 +21,3 @@ for x in `ls ./`; do
     echo -e ${y%.wav}"\t""sph2pipe -f wav $PWD/$x/$y |"
   done
 done
-
-
