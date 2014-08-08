@@ -1,12 +1,21 @@
-. ./path.sh
-. ./cmd.sh
+#!/usr/bin/env bash
+# ===================================================================
+#     FileName: make_learned_feats.sh
+#       Author: Beanocean
+#        Email: beanocean@outlook.com
+#   CreateTime: 2014-08-08 15:12
+# ===================================================================
 
-prefix=$1
-featue_transform=$1/dnn4_pretrain-dbn_dnn/final.feature_transform
-final_net=$1/dnn4_pretrain-dbn_dnn/final.nnet
-data=$2/data/train/feats.scp
-test_data=$2/data/test/feats.scp
-#nnet-forward --use-gpu=yes $feature_transform $final_net scp:$data ark,t:feats.txt
+if [ ! $# -eq 2 ]; then
+  echo "usage: $0 <dnn-path> <data-path>"
+  echo "eg: "
+  echo "  $0 results/exp/dnn4_pretrain-dbn_dnn results/data"
+fi
 
-nnet-forward --use-gpu=yes $feature_transform $final_net scp:$test_data ark,t:test_feats.txt
+featue_transform=$1/final.feature_transform
+final_net=$1/final.nnet
+train_data=$2/train/feats.scp
+test_data=$2/test/feats.scp
 
+nnet-forward --use-gpu=yes $feature_transform $final_net scp:$train_data ark,t:$2/lnd_train.feats
+nnet-forward --use-gpu=yes $feature_transform $final_net scp:$test_data ark,t:$2/lnd_test.feats
